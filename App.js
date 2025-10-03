@@ -8,6 +8,8 @@ import WelcomeScreen from "./src/screens/WelcomeScreen.js";
 import WorkoutSessionsScreen from "./src/screens/WorkoutSessionsScreen.js";
 import CurrentWorkoutStack from './src/screens/CurrentWorkoutStack.js'
 import { AIChatProvider } from './src/context/AIChatContext.js';
+import AIChatButton from './src/components/AIChatButton.js';
+import AIChatModal from './src/screens/AIChatModal.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,7 +33,8 @@ export default function App() {
             component={CurrentWorkoutStack}
           />
         </Stack.Navigator>
-
+        <AIChatButton/>
+        <AIChatModal/>
       </AIChatProvider>
 
     </NavigationContainer>

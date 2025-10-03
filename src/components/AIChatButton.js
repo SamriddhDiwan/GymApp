@@ -1,8 +1,9 @@
 import { useContext } from "react"
+import { StyleSheet,TouchableOpacity,Text } from "react-native";
 import AIChatContext from "../context/AIChatContext"
 
 
-export default AIChatButton = () => {
+export default function AIChatButton(){
     const { modalVisible, setModalVisible } = useContext(AIChatContext);
 
     return (
@@ -11,7 +12,6 @@ export default AIChatButton = () => {
         </TouchableOpacity>
     )
 }
-
 
 
 const styles = StyleSheet.create({
