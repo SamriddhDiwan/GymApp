@@ -1,11 +1,15 @@
 export default class Exercise {
     constructor(ex) {
+        this._exerciseId=ex.id;
         this._exerciseName = ex.name;
         this._exerciseDescription = ex.description;
         this._exerciseHowto = ex.howto;
         this._exerciseImage = ex.exerciseImage;
         this._exerciseVideoTutorial = ex.videoTutorial;
         this._exerciseSet=[];
+    }
+    get exerciseId(){
+        return this._exerciseId;
     }
     get exerciseName() {
         return this._exerciseName;

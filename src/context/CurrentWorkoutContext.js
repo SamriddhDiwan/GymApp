@@ -1,34 +1,36 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState,useEffect } from "react";
+import { useExercise } from "./ExerciseContext";
 const WorkoutContext = createContext();
-export function CurrnetWorkoutProvider({ children }) {
+
+export function CurrentWorkoutProvider({ children }) {
+    //Store the exerciseID and the sets and reps
+    //APIs required
+    //store only the id that can be done using set
+    //APIs required - 
     const [selectedExercises, setSelectedExercises] = useState(new Map());
-    const toggleExercise = (exercise) => {
+    const toggleExercise = (exerciseId) => {
         setSelectedExercises(prev => {
             const newMap = new Map(prev);
-            newMap.has(exercise.exerciseName) ? newMap.delete(exercise.exerciseName) : newMap.set(exercise.exerciseName, exercise);
+            newMap.has(exerciseId) ? newMap.delete(exerciseId) : newMap.set(exerciseId, []);
             return newMap;
         });
     };
-    const updateExerciseSets = (id, newSets) => {
-        setWorkoutData((prev) =>
-            prev.map((ex) => (ex.id === id ? { ...ex, sets: newSets } : ex))
-        );
-    };
-    const addNewSet = (exerciseName) => {
+    const addNewSet = (exerciseId) => {
         setSelectedExercises((prev) => {
             const newMap = new Map(prev);
-            newMap.get(exerciseName).addSet();
+            newMap.get(exerciseId).push({"reps":0,"weight":0});
             return newMap;
         });
     };
 
-    const updateSet = (exerciseName, index, field, value) => {
+    const updateSet = (exerciseId, index, field, value) => {
         setSelectedExercises((prev) => {
             const newMap = new Map(prev);
-            newMap.get(exerciseName).updateSet(index, field, value);
+            newMap.get(exerciseId)[index][field]=value;
             return newMap;
         });
     };
+    //this will break changes on past workout page
     const buildWorkoutObject = () => {
         const workout = {
             id: Date.now().toString(),
@@ -36,21 +38,27 @@ export function CurrnetWorkoutProvider({ children }) {
             exercises: []
         };
 
-        selectedExercises.forEach((exercise, key) => {
+        selectedExercises.forEach((exerciseSets, exerciseId) => {
+            console.log(exerciseSets);
             workout.exercises.push({
-                exerciseId: key,
-                sets: exercise.sets.map(s => ({
+                exerciseId: exerciseId,
+                sets: exerciseSets.map(s => ({
                     weight: s.weight,
                     reps: s.reps,
                 })),
             });
         });
-
+        console.log(JSON.stringify(workout,' ',4));
         return workout;
     };
-
+    const initializeWorkoutScreen = (previousWorkoutObject) => {
+        console.log("here " + JSON.stringify(previousWorkoutObject, ' ', 4));
+        previousWorkoutObject.exercises.forEach(exercise => {
+            toggleExercise(exercise.exerciseId);
+        });
+    }
     return (
-        <WorkoutContext.Provider value={{ selectedExercises, toggleExercise, addNewSet, updateSet, buildWorkoutObject }}>
+        <WorkoutContext.Provider value={{ initializeWorkoutScreen, selectedExercises, toggleExercise, addNewSet, updateSet, buildWorkoutObject }}>
             {children}
         </WorkoutContext.Provider>
     )

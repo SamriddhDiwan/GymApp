@@ -1,6 +1,6 @@
 import { createContext, useState } from "react";
 import Exercise from "../classes/ExerciseClass";
-import exercises from "../exercise";
+import storedExercises from "../exercise";
 
 const AIChatContext = createContext();
 

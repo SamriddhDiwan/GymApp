@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import {
   Modal,
   Text,
@@ -11,85 +11,147 @@ import {
   ActivityIndicator,
 } from "react-native";
 import AIChatContext from "../context/AIChatContext";
-import OpenAI from "openai";
-const endpoint = "https://openrouter.ai/api/v1";
-const deploymentName = "x-ai/grok-4-fast:free";
-const apiKey = "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";
+
+const deploymentName = "deepseek/deepseek-chat-v3.1:free";
+const apiKey = "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";
+
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "getExercises",
+      description: "Get all exercises available in the app database",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: []
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "startNewSession",
+      description: "Creates a new workout session in the UI. Must use an exercise name from getExercises().",
+      parameters: {
+        type: "object",
+        properties: {
+          exerciseName: {
+            type: "string",
+            description: "The exact name of the exercise (must match one from getExercises).",
+          },
+          options: {
+            type: "object",
+            description: "Optional settings for the session.",
+            properties: {
+              duration: {
+                type: "integer",
+                description: "Duration in minutes (optional).",
+              },
+              intensity: {
+                type: "string",
+                enum: ["low", "medium", "high"],
+                description: "Intensity level (optional).",
+              },
+            },
+          },
+        },
+        required: ["exerciseName"],
+      },
+    },
+  }
+];
 
 export default function AIChatModal() {
-  const navigation = useNavigation();
   const { modalVisible, setModalVisible, getExercises } = useContext(AIChatContext);
-
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([{ role: "system", content: "You are gym app assissatant , you can query data and change using exposed function, call functions judically" }]);
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const client = new OpenAI({
-    baseURL: endpoint,
-    apiKey,
-  });
-
-  const sendMessage = async () => {
-    try {
-      const completion = await client.chat.completions.create({
-        model: deploymentName,
-        messages: [...messages, { role: "user", content: inputText }],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "getExercises",
-              description: "Get a list of available workout exercises",
-              parameters: { type: "object", properties: {} }
-            }
-          }
-        ],
-        tool_choice: "auto"
-      });
-
-      const choice = completion.choices[0].message;
-
-      if (choice.tool_calls && choice.tool_calls.length > 0) {
-        // Step 2: Model decided to call getExercises
-        const result = await getExercises(); // <- real function in your app
-        // Step 3: Send the result BACK to the model so it can phrase nicely
-        const secondCompletion = await client.chat.completions.create({
-          model: deploymentName,
-          messages: [
-            ...messages,
-            { role: "user", content: inputText },
-            choice, // the tool call from the model
-            {
-              role: "tool",
-              tool_call_id: choice.tool_calls[0].id,
-              name: "getExercises",
-              content: JSON.stringify(result),
-            },
-          ],
-        });
-
-        const aiReply =
-          secondCompletion.choices?.[0]?.message?.content ||
-          "Here are your exercises!";
-
-        setMessages((prev) => [...prev, { sender: "ai", text: aiReply }]);
-      } else {
-        // No tool call → regular AI response
-        setMessages((prev) => [
-          ...prev,
-          { sender: "ai", text: choice.content }
-        ]);
-      }
-    } catch (err) {
-      console.error(err);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "ai", text: "⚠️ Error contacting AI service." },
-      ]);
+  const handleFunctionCall = async (function_name, function_params) => {
+    console.log("Function handler called");
+    if (function_name === "getExercises") {
+      const exercises = await getExercises();
+      return exercises;
+    } else if (function_name == "startNewSession") {
+      console.log("function parameters")
+      console.log(function_params);
+    } else {
+      console.log("Invalid function called:", function_name);
+      return "Invalid function.";
     }
   };
+  const sendMessage = async (currentMessages) => {
+    try {
+
+      setLoading(true);
+      const sanitizedMessages = currentMessages.map(msg => ({
+        role: msg.role === "tool" ? "assistant" : msg.role, // convert tool messages to assistant
+        content: msg.content
+      }));
+      console.log(sanitizedMessages);
+      if (!sanitizedMessages) {
+        return;
+      }
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: deploymentName,
+          messages: sanitizedMessages,
+          tools: tools
+        }),
+      });
 
 
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const assistantMessage = data.choices[0].message;
+      setMessages((prev) => [...prev, assistantMessage]);
+      // Handle tool calls if present
+      if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+        var newMessages;
+        for (const toolCall of assistantMessage.tool_calls) {
+          if (toolCall.function.name) {
+            const toolName = toolCall.function.name;
+            const { function_params } = JSON.parse(toolCall.function.arguments);
+            const toolResponse = await handleFunctionCall(toolName, function_params);
+            newMessages = [
+              ...messages,
+              {
+                role: 'tool',
+                toolCallId: toolCall.id,
+                name: toolName,
+                content: JSON.stringify(toolResponse),
+              },
+            ];
+          }
+          setMessages(newMessages);
+        }
+        sendMessage(newMessages);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Error contacting AI service." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+  const sendMessageHandler = async () => {
+    const newMessages = [...messages, { role: "user", content: inputText }];
+    setMessages(newMessages);
+    setInputText("");
+    sendMessage(newMessages);
+  };
 
   return (
     <Modal
@@ -104,14 +166,27 @@ export default function AIChatModal() {
             data={messages}
             keyExtractor={(_, index) => index.toString()}
             renderItem={({ item }) => (
-              <View
+              item.content && <View
                 style={[
                   styles.messageBubble,
-                  item.sender === "ai" ? styles.aiBubble : styles.userBubble,
+                  item.role === "assistant"
+                    ? styles.aiBubble
+                    : item.role === "tool"
+                      ? styles.functionBubble
+                      : styles.userBubble,
                 ]}
               >
-                <Text style={{ color: item.sender === "ai" ? "#000" : "#fff" }}>
-                  {item.text}
+                <Text
+                  style={{
+                    color:
+                      item.role === "assistant"
+                        ? "#000"
+                        : item.role === "tool"
+                          ? "#333"
+                          : "#fff",
+                  }}
+                >
+                  {item.content}
                 </Text>
               </View>
             )}
@@ -126,7 +201,7 @@ export default function AIChatModal() {
               placeholder="Type a message..."
               style={styles.input}
             />
-            <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+            <TouchableOpacity onPress={sendMessageHandler} style={styles.sendButton}>
               <Text style={{ color: "#fff" }}>Send</Text>
             </TouchableOpacity>
           </View>
@@ -150,7 +225,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   chatContainer: {
-    height: "50%",
+    height: "60%",
     backgroundColor: "#fff",
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
@@ -164,6 +239,10 @@ const styles = StyleSheet.create({
   },
   aiBubble: { backgroundColor: "#e0e0e0", alignSelf: "flex-start" },
   userBubble: { backgroundColor: "#6200EE", alignSelf: "flex-end" },
+  functionBubble: {
+    backgroundColor: "#c0ffc0",
+    alignSelf: "flex-start",
+  },
   inputContainer: { flexDirection: "row", marginTop: 10 },
   input: {
     flex: 1,

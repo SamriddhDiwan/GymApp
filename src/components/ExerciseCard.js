@@ -1,83 +1,118 @@
-import { useEffect, useState } from "react";
-import Exercise from "../classes/ExerciseClass";
-import { Text, View, StyleSheet, Image, Button, TouchableOpacity, } from 'react-native';
+import { useState } from "react";
+import {
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useWorkout } from "../context/CurrentWorkoutContext";
-export default ExerciseCard = ({ exercise }) => {
-    const {selectedExercises,toggleExercise}=useWorkout();
-    const [isSelected,setIsSelected]=useState(selectedExercises.has(exercise.exerciseName));
-    var navigation=useNavigation();
-    const onPressHandler = ((ex) => {
-        return navigation.navigate('WorkoutFlow',{screen:'ExerciseDescription' ,params:{exercise: exercise} });
-    })
-    return (
-        <TouchableOpacity onPress={() => {
-            toggleExercise(exercise);
-            setIsSelected(!isSelected);
-        }}>
-            <View style={[styles.card,{ borderColor: isSelected ? "green" : "#ccc", borderWidth: 2 }]}>
-                <Image source={{ uri: exercise.exerciseImage }} style={styles.image} />
-                <Text style={styles.title}>{exercise.exerciseName}</Text>
-                <Button onPress={onPressHandler} title="How To" />
-            </View>
-        </TouchableOpacity>
+import { useExercise } from "../context/ExerciseContext";
 
-    );
+export default ExerciseCard = ({ exerciseId }) => {
+  const { selectedExercises, toggleExercise } = useWorkout();
+  const { getExerciseById } = useExercise();
+  const exercise = getExerciseById(exerciseId);
+  const [isSelected, setIsSelected] = useState(
+    selectedExercises.has(exercise.exerciseName)
+  );
+  const navigation = useNavigation();
+
+  const onInfoPress = () => {
+    navigation.navigate("WorkoutFlow", {
+      screen: "ExerciseDescription",
+      params: { exercise: exercise },
+    });
+  };
+
+  const onCardPress = () => {
+    toggleExercise(exerciseId);
+    setIsSelected(!isSelected);
+  };
+
+  return (
+    <TouchableOpacity
+      style={[styles.card, isSelected && styles.cardSelected]}
+      onPress={onCardPress}
+      activeOpacity={0.7}
+    >
+      <Image source={{ uri: exercise.exerciseImage }} style={styles.image} />
+
+      <View style={styles.content}>
+        <Text style={styles.title} numberOfLines={1}>
+          {exercise.name}
+        </Text>
+        <Text style={styles.muscle} numberOfLines={1}>
+          {exercise.muscleGroup || "Muscle Group"}
+        </Text>
+      </View>
+
+      <TouchableOpacity style={styles.infoBtn} onPress={onInfoPress}>
+        <Text style={styles.infoText}>ⓘ</Text>
+      </TouchableOpacity>
+
+      {isSelected && (
+        <View style={styles.checkBadge}>
+          <Text style={styles.checkText}>✓</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
 };
 
-
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: "#fff",
-        borderRadius: 16,
-        padding: 16,
-        marginVertical: 12,
-        marginHorizontal: 20,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 4, // Android shadow
-    },
-    image: {
-        width: "100%",
-        height: 200,
-        resizeMode: "contain",
-        borderRadius: 12,
-        marginBottom: 12,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "#222",
-        marginBottom: 8,
-    },
-    description: {
-        fontSize: 16,
-        color: "#555",
-        marginBottom: 12,
-    },
-    howtoTitle: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#333",
-        marginTop: 8,
-    },
-    howto: {
-        fontSize: 15,
-        color: "#444",
-        marginBottom: 16,
-    },
-    button: {
-        backgroundColor: "#4CAF50",
-        paddingVertical: 10,
-        borderRadius: 10,
-        alignItems: "center",
-        marginTop: 10,
-    },
-    buttonText: {
-        color: "#fff",
-        fontWeight: "600",
-        fontSize: 16,
-    },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1C2541",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#2a3a5a",
+  },
+  cardSelected: {
+    backgroundColor: "#243b55",
+  },
+  image: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    backgroundColor: "#0B132B",
+  },
+  content: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: 2,
+  },
+  muscle: {
+    fontSize: 13,
+    color: "#888",
+  },
+  infoBtn: {
+    padding: 8,
+  },
+  infoText: {
+    fontSize: 18,
+    color: "#666",
+  },
+  checkBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#4A90D9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  checkText: {
+    fontSize: 14,
+    color: "#fff",
+    fontWeight: "600",
+  },
 });

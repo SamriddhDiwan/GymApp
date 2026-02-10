@@ -6,18 +6,25 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import NewWorkoutScreen from "./NewWorkoutScreen";
 import ExerciseMenu from "./ExerciseMenu";
 import ExerciseDescriptionScreen from "./ExerciseDescriptionScreen";
-import { CurrnetWorkoutProvider } from "../context/CurrentWorkoutContext";
-
+import { CurrentWorkoutProvider } from "../../context/CurrentWorkoutContext";
 const Stack = createNativeStackNavigator();
 
-export default function CurrentWorkoutStack() {
+export default function CurrentWorkoutStack({ route }) {
     return (
-        <CurrnetWorkoutProvider>
-            <Stack.Navigator initialRouteName="NewWorkout">
+        <CurrentWorkoutProvider>
+            <Stack.Navigator
+                initialRouteName="NewWorkout"
+                screenOptions={{
+                    initialParams: route?.params,
+                    headerStyle: { backgroundColor: "#0B132B" },
+                    headerTintColor: '#fff',
+                }}
+            >
                 <Stack.Screen
                     name="NewWorkout"
                     component={NewWorkoutScreen}
                     options={{ title: "Start Your Workout" }}
+                    initialParams={route?.params}
                 />
                 <Stack.Screen
                     name="ExerciseMenu"
@@ -30,7 +37,7 @@ export default function CurrentWorkoutStack() {
                     options={{ title: "Exercise Description" }}
                 />
             </Stack.Navigator>
-        </CurrnetWorkoutProvider>
+        </CurrentWorkoutProvider>
 
     );
 }

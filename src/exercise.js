@@ -1,4 +1,4 @@
-var exercises={
+var storedExercises={
   "chestpress": {
     "name": "Chest Press",
     "description": "Targets the pectoral chest muscles",
@@ -141,4 +141,4 @@ var exercises={
   }
 }
 
-export default exercises;
+export default storedExercises;
