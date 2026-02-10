@@ -4,11 +4,13 @@ import supabase from '../_utils/db.js';
 import { addCorsHeaders } from '../_middleware/cors.js';
 
 export default async function handler(req, res) {
+  // Handle CORS first
+  if(addCorsHeaders(req,res)) return ;
+  
   // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if(addCorsHeaders(req,res)) return ;
   try {
     const { email, password } = req.body;
 
