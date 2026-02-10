@@ -1,0 +1,13 @@
+node_modules/
+.expo/
+android/
+lib/
+src/
+assets/
+*.apk
+*.ipa
+.git/
+.idea/
+App.js
+index.js
+app.json
