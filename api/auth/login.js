@@ -1,10 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import supabase from '../_utils/db.js';
-import { addCorsHeaders } from '../_middleware/cors.js';
+import { addCorsHeaders } from '../lib/cors.js';
 
 export default async function handler(req, res) {
-  // Handle CORS first
   if(addCorsHeaders(req,res)) return ;
   
   if (req.method !== 'POST') {

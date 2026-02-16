@@ -1,8 +1,8 @@
-import { addCorsHeaders } from "./_middleware/cors";
+import { addCorsHeaders } from "./lib/cors.js";
 
-export default function handler(req,res){
-    if(addCorsHeaders(req,res)) return;
-    res.status(200).json({
-        message:"Hello from the gym app"
-    })
+export default function handler(req, res) {
+  if (addCorsHeaders(req, res)) return;
+  res.status(200).json({
+    message: "Hello from the gym app",
+  });
 }

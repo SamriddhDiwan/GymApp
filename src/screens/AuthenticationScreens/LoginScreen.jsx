@@ -9,31 +9,29 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { authService } from '../../services/authServices.js'
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuthentication } from "../../context/AuthenticationContext.js";
 
 
-function validateLogin(email,password){
-    const correctEmail="samriddhdiwan7@gmail.com";
-    const correctPassword="1234";
-    if(email===correctEmail){
-        return password===correctPassword;
-    }else{
-        return false;
-    }
-}
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {setAccessToken,setRefreshToken}=useAuthentication();
+  const [email, setEmail] = useState("test@example.com");
+  const [password, setPassword] = useState("password123");
   const [error, setError] = useState("");
-  const navigation=useNavigation();
-  
-  const handleLogin = () => {
+  const navigation = useNavigation();
+
+  const handleLogin = async () => {
     setError("");
-    if(validateLogin(email,password)){
-        navigation.navigate("Welcome");
+    const response = await authService.login(email, password);
+    if (response.status !== 200) {
+      setError(response.error);
     } else {
-        setError("Invalid email or password");
+      response=response.json();
+      setAccessToken(response.accessToken);
+      setRefreshToken(response.refreshToken);
+      set
     }
   };
 
