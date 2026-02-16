@@ -12,4 +12,4 @@ export function AuthenticationProvider({ children }) {
         </AuthenticationContext.Provider>
     )
 }
-export const useAuthentication = () => useContext(ExerciseContext);
+export const useAuthentication = () => useContext(AuthenticationContext);

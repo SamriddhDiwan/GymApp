@@ -1,4 +1,4 @@
-import { addCorsHeaders } from "./lib/cors.js";
+import { addCorsHeaders } from "./_lib/cors.js";
 
 export default function handler(req, res) {
   if (addCorsHeaders(req, res)) return;

@@ -31,7 +31,6 @@ export default function LoginScreen() {
       response=response.json();
       setAccessToken(response.accessToken);
       setRefreshToken(response.refreshToken);
-      set
     }
   };
 
