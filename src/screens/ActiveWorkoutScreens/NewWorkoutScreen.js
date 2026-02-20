@@ -8,9 +8,9 @@ import {
     TouchableOpacity,
     SafeAreaView,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExerciseSessionCard from '../../components/ExerciseSessionCard';
 import { useWorkout } from '../../context/CurrentWorkoutContext';
+import workoutSessionServices from '../../services/workoutSessionServices.js'
 
 
 export default function NewWorkoutScreen({route}) {const navigation = useNavigation();
@@ -19,7 +19,6 @@ export default function NewWorkoutScreen({route}) {const navigation = useNavigat
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     useEffect(() => {
             if(route&&route.params&&route.params.previousWorkoutObject){
-        console.log(route.params.previousWorkoutObject);
         initializeWorkoutScreen(route.params.previousWorkoutObject);
     }
         const interval = setInterval(() => {
@@ -38,15 +37,8 @@ export default function NewWorkoutScreen({route}) {const navigation = useNavigat
     const exerciseMenuButtonHandler = () => navigation.navigate('ExerciseMenu');
     const endWorkoutHandler = async () => {
         try {
-            const workoutObject = { ...buildWorkoutObject(), durationSeconds: elapsedSeconds,time:startTime };
-            const existing=await AsyncStorage.getItem("workoutHistory");
-            const workouts=existing?JSON.parse(existing):[];
-            workouts.push(workoutObject);
-            
-            await AsyncStorage.setItem(
-                'workoutHistory',
-                JSON.stringify(workouts)
-            );
+            const workoutObject = { ...buildWorkoutObject(), durationSeconds: elapsedSeconds};
+            await workoutSessionServices.create(workoutObject);
             navigation.goBack();
         } catch (err) {
             console.error('Error saving workout:', err);

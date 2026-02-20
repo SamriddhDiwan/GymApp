@@ -39,7 +39,6 @@ export function CurrentWorkoutProvider({ children }) {
         };
 
         selectedExercises.forEach((exerciseSets, exerciseId) => {
-            console.log(exerciseSets);
             workout.exercises.push({
                 exerciseId: exerciseId,
                 sets: exerciseSets.map(s => ({
@@ -48,11 +47,9 @@ export function CurrentWorkoutProvider({ children }) {
                 })),
             });
         });
-        console.log(JSON.stringify(workout,' ',4));
         return workout;
     };
     const initializeWorkoutScreen = (previousWorkoutObject) => {
-        console.log("here " + JSON.stringify(previousWorkoutObject, ' ', 4));
         previousWorkoutObject.exercises.forEach(exercise => {
             toggleExercise(exercise.exerciseId);
         });

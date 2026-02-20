@@ -4,7 +4,7 @@ import ExerciseRow from './ExerciseRow.jsx';
 
 export default function WorkoutCard({ workout,resumePreviousWorkout }) {
 
-    const event = new Date(workout.time || Date.now());
+    const event = new Date(workout.date || Date.now());
 
     let timeOfTheDay;
     const hours = event.getHours();

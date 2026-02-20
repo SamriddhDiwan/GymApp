@@ -1,6 +1,6 @@
 const ENV = {
   development: {
-    API_URL: 'https://gym-app-wine-two.vercel.app/api',
+    API_URL: 'http://10.0.2.2:3000/api',
   },
   staging: {
     API_URL: 'https://gym-app-wine-two.vercel.app/api',

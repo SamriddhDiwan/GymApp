@@ -1,23 +1,30 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, View, Image } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, View } from 'react-native';
 import WorkoutCard from '../components/WorkoutCard';
+import workoutSessionServices from '../services/workoutSessionServices';
 
 
 export default function WorkoutSessionsScreen() {
-  const [workouts, setWorkout] = useState([]);
+  const [workouts, setWorkouts] = useState([]);
   const navigation = useNavigation();
-  const resumePreviousWorkout=(previousWorkoutObject)=>{
-    navigation.navigate("WorkoutFlow",{previousWorkoutObject:previousWorkoutObject});
+  const resumePreviousWorkout = (previousWorkoutObject) => {
+    navigation.navigate("WorkoutFlow", { previousWorkoutObject: previousWorkoutObject });
   }
+
   useFocusEffect(useCallback(() => {
+    let isCurrent = true;
     async function fetchWorkouts() {
-      let fetchedResult = await AsyncStorage.getItem("workoutHistory")
-      setWorkout(fetchedResult ? JSON.parse(fetchedResult) : []);
+      const storedSessions = await workoutSessionServices.getWorkouts(undefined, {
+        onRefresh: (fresh) => {
+          if (isCurrent) setWorkouts(fresh);
+        },
+      });
+      if (isCurrent) setWorkouts(storedSessions || []);
     }
     fetchWorkouts();
-  }, []))
+    return () => { isCurrent = false; };
+  }, []));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -59,6 +66,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-
-
-

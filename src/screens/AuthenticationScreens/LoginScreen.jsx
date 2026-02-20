@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -9,29 +9,19 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { authService } from '../../services/authServices.js'
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuthentication } from "../../context/AuthenticationContext.js";
+import { AuthContext } from "../../context/AuthContext.js";
 
 
 
 export default function LoginScreen() {
-  const {setAccessToken,setRefreshToken}=useAuthentication();
-  const [email, setEmail] = useState("test@example.com");
-  const [password, setPassword] = useState("password123");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState("test4@gmail.com");
+  const [password, setPassword] = useState("Test!234");
+  const {signIn,state}=useContext(AuthContext);
   const navigation = useNavigation();
-
+  const error=state.loginError;
   const handleLogin = async () => {
-    setError("");
-    const response = await authService.login(email, password);
-    if (response.status !== 200) {
-      setError(response.error);
-    } else {
-      response=response.json();
-      setAccessToken(response.accessToken);
-      setRefreshToken(response.refreshToken);
-    }
+    await signIn({email,password});
   };
 
   return (
