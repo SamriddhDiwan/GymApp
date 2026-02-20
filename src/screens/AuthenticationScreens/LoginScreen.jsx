@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -17,11 +18,18 @@ import { AuthContext } from "../../context/AuthContext.js";
 export default function LoginScreen() {
   const [email, setEmail] = useState("test4@gmail.com");
   const [password, setPassword] = useState("Test!234");
+  const [loading, setLoading] = useState(false);
   const {signIn,state}=useContext(AuthContext);
   const navigation = useNavigation();
   const error=state.loginError;
   const handleLogin = async () => {
-    await signIn({email,password});
+    if (loading) return;
+    setLoading(true);
+    try {
+      await signIn({email,password});
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,8 +80,12 @@ export default function LoginScreen() {
             </View>
           ) : null}
 
-          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
-            <Text style={styles.loginBtnText}>Sign In</Text>
+          <TouchableOpacity style={[styles.loginBtn, loading && { opacity: 0.6 }]} onPress={handleLogin} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.loginBtnText}>Sign In</Text>
+            )}
           </TouchableOpacity>
         </View>
 

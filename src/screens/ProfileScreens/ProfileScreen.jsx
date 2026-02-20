@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -66,6 +66,16 @@ function MenuRow({ icon, label, onPress, color = "#fff", showChevron = true }) {
 export default function ProfileScreen() {
   const { signOut } = useContext(AuthContext);
   const navigation = useNavigation();
+  const [signingOut, setSigningOut] = useState(false);
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -139,10 +149,10 @@ export default function ProfileScreen() {
           <MenuSection title="ACCOUNT">
             <MenuRow
               icon="log-out-outline"
-              label="Sign Out"
+              label={signingOut ? "Signing Out…" : "Sign Out"}
               color="#E74C3C"
               showChevron={false}
-              onPress={signOut}
+              onPress={handleSignOut}
             />
           </MenuSection>
         </View>

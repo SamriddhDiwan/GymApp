@@ -6,6 +6,7 @@ import {
     StyleSheet,
     FlatList,
     TouchableOpacity,
+    ActivityIndicator,
     SafeAreaView,
 } from 'react-native';
 import ExerciseSessionCard from '../../components/ExerciseSessionCard';
@@ -17,6 +18,7 @@ export default function NewWorkoutScreen({route}) {const navigation = useNavigat
     const { selectedExercises, buildWorkoutObject,initializeWorkoutScreen } = useWorkout();
     const [startTime] = useState(Date.now());
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [ending, setEnding] = useState(false);
     useEffect(() => {
             if(route&&route.params&&route.params.previousWorkoutObject){
         initializeWorkoutScreen(route.params.previousWorkoutObject);
@@ -36,12 +38,16 @@ export default function NewWorkoutScreen({route}) {const navigation = useNavigat
 
     const exerciseMenuButtonHandler = () => navigation.navigate('ExerciseMenu');
     const endWorkoutHandler = async () => {
+        if (ending) return;
+        setEnding(true);
         try {
             const workoutObject = { ...buildWorkoutObject(), durationSeconds: elapsedSeconds};
             await workoutSessionServices.create(workoutObject);
             navigation.goBack();
         } catch (err) {
             console.error('Error saving workout:', err);
+        } finally {
+            setEnding(false);
         }
     };
 
@@ -74,10 +80,15 @@ export default function NewWorkoutScreen({route}) {const navigation = useNavigat
             />
             <View style={styles.floatingFooter}>
                 <TouchableOpacity
-                    style={styles.endBtn}
+                    style={[styles.endBtn, ending && { opacity: 0.6 }]}
                     onPress={endWorkoutHandler}
+                    disabled={ending}
                 >
-                    <Text style={styles.endBtnText}>End Workout</Text>
+                    {ending ? (
+                        <ActivityIndicator color="#0B132B" size="small" />
+                    ) : (
+                        <Text style={styles.endBtnText}>End Workout</Text>
+                    )}
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

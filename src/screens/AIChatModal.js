@@ -147,6 +147,7 @@ export default function AIChatModal() {
     }
   }
   const sendMessageHandler = async () => {
+    if (loading || !inputText.trim()) return;
     const newMessages = [...messages, { role: "user", content: inputText }];
     setMessages(newMessages);
     setInputText("");
@@ -201,7 +202,7 @@ export default function AIChatModal() {
               placeholder="Type a message..."
               style={styles.input}
             />
-            <TouchableOpacity onPress={sendMessageHandler} style={styles.sendButton}>
+            <TouchableOpacity onPress={sendMessageHandler} style={[styles.sendButton, loading && { opacity: 0.5 }]} disabled={loading}>
               <Text style={{ color: "#fff" }}>Send</Text>
             </TouchableOpacity>
           </View>
