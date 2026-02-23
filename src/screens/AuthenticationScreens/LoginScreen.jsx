@@ -31,7 +31,6 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -71,7 +70,7 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity style={styles.forgotBtn}>
-            <Text style={styles.forgotText}>Forgot Password?</Text>
+            <Text style={styles.forgotText} onPress={()=>{navigation.navigate("ForgotPassword")}}>Forgot Password?</Text>
           </TouchableOpacity>
 
           {error ? (

@@ -131,10 +131,33 @@ class AuthService {
     await this.clearTokens();
     await AsyncStorage.removeItem('workoutHistory');
   }
-
   async getUser() {
     const userJson = await AsyncStorage.getItem('user');
     return userJson ? JSON.parse(userJson) : null;
+  }
+  async sendOTP(email){
+    const response=await fetch(`${config.API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({email})
+    });
+    return response;
+  }
+  async resetPassword(email, newPassword, resetPasswordToken) {
+    const response = await fetch(`${config.API_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, newPassword, resetPasswordToken })
+    });
+    return response;
+  }
+  async verifyOTP(email,otp){
+    const response=await fetch(`${config.API_URL}/auth/forgot-password-verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({email,otp})
+    });
+    return response;
   }
 }
 

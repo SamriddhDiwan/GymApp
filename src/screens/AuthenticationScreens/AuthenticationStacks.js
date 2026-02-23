@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./LoginScreen";
 import RegisterScreen from "./RegisterScreen";
+import ForgotPasswordScreen from "./ForgotPasswordScreen";
+import ResetPasswordScreen from "./ResetPasswordScreen";
 
 // Screens
 const Stack = createNativeStackNavigator();
@@ -23,6 +25,14 @@ export default function AuthenticationStack({ route }) {
                 name="Signup"
                 component={RegisterScreen}
                 options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="ForgotPassword"
+                component={ForgotPasswordScreen}
+            />
+            <Stack.Screen
+                name="ResetPassword"
+                component={ResetPasswordScreen}
             />
         </Stack.Navigator>
     );
