@@ -48,54 +48,56 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: new_session_error || 'Unable to save workout' });
         }
         const { id: session_id } = new_session;
-        for (let i = 0; i < workoutObject.exercises.length; i++) {
-            const exercise = workoutObject.exercises[i];
-            const { data: new_exercise, error: new_exercise_error } = await supabase
-                .from('workout_exercises')
-                .insert([{
-                    session_id: session_id,
-                    exercise_id: exercise.exerciseId,
-                    exercise_name: exercise.exerciseName || "NA",
-                    order_index: i
-                }])
-                .select()
-                .single();
 
-            if (new_exercise_error) {
-                console.error('Exercise insert error:', new_exercise_error);
-                await supabase
-                    .from('workout_sessions')
-                    .delete()
-                    .eq('id', session_id);
+        // Bulk insert all exercises in one call
+        const exerciseRows = workoutObject.exercises.map((exercise, i) => ({
+            session_id: session_id,
+            exercise_id: exercise.exerciseId,
+            exercise_name: exercise.exerciseName || "NA",
+            order_index: i
+        }));
 
-                return res.status(500).json({ error: 'Failed to save exercise' });
-            }
+        const { data: insertedExercises, error: exercisesError } = await supabase
+            .from('workout_exercises')
+            .insert(exerciseRows)
+            .select();
 
-            const exercise_id = new_exercise.id;
-            for (let j = 0; j < exercise.sets.length; j++) {
-                const set = exercise.sets[j];
+        if (exercisesError) {
+            console.error('Exercise insert error:', exercisesError);
+            await supabase.from('workout_sessions').delete().eq('id', session_id);
+            return res.status(500).json({ error: 'Failed to save exercises' });
+        }
 
-                const { error: new_set_error } = await supabase
-                    .from('exercise_sets')
-                    .insert([{
-                        workout_exercise_id: exercise_id,
-                        set_number: j + 1, 
-                        weight: parseFloat(set.weight) || 0,
-                        reps: parseInt(set.reps) || 0,
-                        is_done: true
-                    }]);
+        // Sort by order_index to match original exercise order
+        insertedExercises.sort((a, b) => a.order_index - b.order_index);
 
-                if (new_set_error) {
-                    console.error('Set insert error:', new_set_error);
-                    await supabase
-                        .from('workout_sessions')
-                        .delete()
-                        .eq('id', session_id);
+        // Bulk insert all sets in one call
+        const setRows = [];
+        workoutObject.exercises.forEach((exercise, i) => {
+            const exerciseDbId = insertedExercises[i].id;
+            exercise.sets.forEach((set, j) => {
+                setRows.push({
+                    workout_exercise_id: exerciseDbId,
+                    set_number: j + 1,
+                    weight: parseFloat(set.weight) || 0,
+                    reps: parseInt(set.reps) || 0,
+                    is_done: true
+                });
+            });
+        });
 
-                    return res.status(500).json({ error: 'Failed to save set' });
-                }
+        if (setRows.length > 0) {
+            const { error: setsError } = await supabase
+                .from('exercise_sets')
+                .insert(setRows);
+
+            if (setsError) {
+                console.error('Sets insert error:', setsError);
+                await supabase.from('workout_sessions').delete().eq('id', session_id);
+                return res.status(500).json({ error: 'Failed to save sets' });
             }
         }
+
         return res.status(201).json({
             id: session_id,
             message: 'Workout saved successfully'

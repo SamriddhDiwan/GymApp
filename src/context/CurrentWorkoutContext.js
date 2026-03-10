@@ -18,7 +18,8 @@ export function CurrentWorkoutProvider({ children }) {
     const addNewSet = (exerciseId) => {
         setSelectedExercises((prev) => {
             const newMap = new Map(prev);
-            newMap.get(exerciseId).push({"reps":0,"weight":0});
+            const newSets = [...(newMap.get(exerciseId) || []), {"reps":0,"weight":0}];
+            newMap.set(exerciseId, newSets);
             return newMap;
         });
     };
@@ -26,7 +27,10 @@ export function CurrentWorkoutProvider({ children }) {
     const updateSet = (exerciseId, index, field, value) => {
         setSelectedExercises((prev) => {
             const newMap = new Map(prev);
-            newMap.get(exerciseId)[index][field]=value;
+            const newSets = (newMap.get(exerciseId) || []).map((set, i) =>
+                i === index ? { ...set, [field]: value } : set
+            );
+            newMap.set(exerciseId, newSets);
             return newMap;
         });
     };

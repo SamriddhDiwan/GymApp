@@ -86,6 +86,7 @@ class WorkoutSessionServices {
             });
         } catch (error) {
             console.log("Error saving the data");
+            throw error;
         }
     }
 

@@ -23,28 +23,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Password must be at least 8 characters' });
     }
 
-    // Check if user already exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single();
-
-    if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
-
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user — rely on DB unique constraint instead of check-then-act
     const { data, error } = await supabase.rpc('register_user_v1', {
       p_email: email,
       p_password_hash: passwordHash,
       p_name: name
     });
 
-    if (error) { 
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ error: 'User already exists' });
+      }
       throw error;
     }
 

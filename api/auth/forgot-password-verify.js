@@ -37,7 +37,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: "OTP expired" });
             }
         }
-        await supabase.from('password_reset_otp').update('used', true).eq('email', email);
+        await supabase.from('password_reset_otps').update({ used: true }).eq('email', email);
         const resetPasswordToken = jwt.sign(
             { email: email },
             process.env.JWT_SECRET,

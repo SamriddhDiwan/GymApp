@@ -60,7 +60,6 @@ export default async function handler(req, res) {
       dateOfBirth: data.profiles?.date_of_birth || null,
       gender: data.profiles?.gender || null,
       phoneNo: data.profiles?.phone_no||null,
-      dateOfBirth: data.profiles?.data_of_birth||null,
       
       weight: data.gym_profiles?.weight || null,
       height: data.gym_profiles?.height || null,
