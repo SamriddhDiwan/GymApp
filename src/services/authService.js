@@ -130,6 +130,7 @@ class AuthService {
   async logout() {
     await this.clearTokens();
     await AsyncStorage.removeItem('workoutHistory');
+    await AsyncStorage.removeItem('userDetails');
   }
   async getUser() {
     const userJson = await AsyncStorage.getItem('user');

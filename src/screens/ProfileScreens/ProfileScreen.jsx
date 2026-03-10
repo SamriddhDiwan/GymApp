@@ -11,14 +11,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { AuthContext } from "../../context/AuthContext.js";
+import { useUserDetails } from "../../context/UserDetailsContext.js";
 
-const user = {
-  name: "Alex Johnson",
-  email: "alex@example.com",
-  weight: "82 kg",
-  height: "178 cm",
-  goal: "Build Muscle",
-};
+
+
 
 function getInitials(name) {
   return name
@@ -67,6 +63,17 @@ export default function ProfileScreen() {
   const { signOut } = useContext(AuthContext);
   const navigation = useNavigation();
   const [signingOut, setSigningOut] = useState(false);
+  const { userDetails } = useUserDetails();
+  const details = userDetails || {};
+  const user = {
+    name: details.name || "",
+    email: details.email || "",
+    weight: details.weight ? `${details.weight} ${details.weightUnit || ""}` : "",
+    height: details.height ? `${details.height} ${details.heightUnit || ""}` : "",
+    goal: details.fitnessGoal || "",
+  };
+
+
   const handleSignOut = async () => {
     if (signingOut) return;
     setSigningOut(true);

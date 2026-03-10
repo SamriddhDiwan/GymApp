@@ -1,30 +1,58 @@
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  TextInput
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useUserDetails } from "../../context/UserDetailsContext.js";
+import userDetailServices from "../../services/userDetailServices.js";
 
-const MEASUREMENTS = [
-  { label: "Chest", icon: "fitness-outline", value: "38", unit: "in" },
-  { label: "Waist", icon: "resize-outline", value: "32", unit: "in" },
-  { label: "Arms", icon: "barbell-outline", value: "15", unit: "in" },
-  { label: "Thighs", icon: "walk-outline", value: "24", unit: "in" },
-  { label: "Body Fat", icon: "water-outline", value: "15", unit: "%" },
-  { label: "BMI", icon: "analytics-outline", value: "25.9", unit: "" },
+const MEASUREMENT_FIELDS = [
+  { key: "chest", label: "Chest", icon: "fitness-outline", unit: "in" },
+  { key: "waist", label: "Waist", icon: "resize-outline", unit: "in" },
+  { key: "arms", label: "Arms", icon: "barbell-outline", unit: "in" },
+  { key: "thighs", label: "Thighs", icon: "walk-outline", unit: "in" },
+  { key: "bodyFat", label: "Body Fat", icon: "water-outline", unit: "%" },
+  { key: "bmi", label: "BMI", icon: "analytics-outline", unit: "" },
 ];
 
 export default function BodyMeasurementsScreen() {
   const navigation = useNavigation();
-  const [weight, setWeight] = useState("82");
-  const [height, setHeight] = useState("178");
-  const [measurements, setMeasurements] = useState(MEASUREMENTS);
+  const { userDetails, refreshUserDetails } = useUserDetails();
+  const details = userDetails || {};
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [measurements, setMeasurements] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setWeight(details.weight ? String(details.weight) : "");
+    setHeight(details.height ? String(details.height) : "");
+    const initial = {};
+    for (const field of MEASUREMENT_FIELDS) {
+      initial[field.key] = details[field.key] ? String(details[field.key]) : "";
+    }
+    setMeasurements(initial);
+  }, [userDetails]);
+
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    await userDetailServices.changeUserDetails({
+      weight: weight || undefined,
+      height: height || undefined,
+      ...measurements,
+    });
+    await refreshUserDetails();
+    setSaving(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -49,7 +77,7 @@ export default function BodyMeasurementsScreen() {
             />
             <View style={styles.primaryCardContent}>
               <Ionicons name="scale-outline" size={24} color="#4A90D9" />
-              <Text style={styles.primaryValue}>{weight}</Text>
+              <TextInput style={styles.primaryValue} value={weight} onChangeText={setWeight} keyboardType="numeric" />
               <Text style={styles.primaryUnit}>kg</Text>
               <Text style={styles.primaryLabel}>Weight</Text>
             </View>
@@ -62,7 +90,7 @@ export default function BodyMeasurementsScreen() {
             />
             <View style={styles.primaryCardContent}>
               <Ionicons name="body-outline" size={24} color="#4A90D9" />
-              <Text style={styles.primaryValue}>{height}</Text>
+              <TextInput style={styles.primaryValue} value={height} onChangeText={setHeight} keyboardType="numeric" />
               <Text style={styles.primaryUnit}>cm</Text>
               <Text style={styles.primaryLabel}>Height</Text>
             </View>
@@ -71,16 +99,25 @@ export default function BodyMeasurementsScreen() {
 
         {/* Measurements Grid */}
         <View style={styles.grid}>
-          {measurements.map((item, index) => (
-            <View key={index} style={styles.gridCard}>
+          {MEASUREMENT_FIELDS.map((field) => (
+            <View key={field.key} style={styles.gridCard}>
               <View style={styles.gridCardHeader}>
-                <Ionicons name={item.icon} size={18} color="#888" />
-                <Text style={styles.gridLabel}>{item.label}</Text>
+                <Ionicons name={field.icon} size={18} color="#888" />
+                <Text style={styles.gridLabel}>{field.label}</Text>
               </View>
               <View style={styles.gridValueRow}>
-                <Text style={styles.gridValue}>{item.value}</Text>
-                {item.unit ? (
-                  <Text style={styles.gridUnit}>{item.unit}</Text>
+                <TextInput
+                  style={styles.gridValue}
+                  value={measurements[field.key] || ""}
+                  keyboardType="numeric"
+                  placeholder="—"
+                  placeholderTextColor="#555"
+                  onChangeText={(text) => {
+                    setMeasurements((prev) => ({ ...prev, [field.key]: text }));
+                  }}
+                />
+                {field.unit ? (
+                  <Text style={styles.gridUnit}>{field.unit}</Text>
                 ) : null}
               </View>
             </View>
@@ -88,7 +125,7 @@ export default function BodyMeasurementsScreen() {
         </View>
 
         {/* Update Button */}
-        <TouchableOpacity activeOpacity={0.8} style={styles.updateBtnWrapper}>
+        <TouchableOpacity activeOpacity={0.8} style={styles.updateBtnWrapper} onPress={handleSave}>
           <LinearGradient
             colors={["#4A90D9", "#357ABD"]}
             start={{ x: 0, y: 0 }}
@@ -96,7 +133,7 @@ export default function BodyMeasurementsScreen() {
             style={styles.updateBtn}
           >
             <Ionicons name="create-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.updateBtnText}>Update Measurements</Text>
+            <Text style={styles.updateBtnText}>{saving ? "Saving…" : "Update Measurements"}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>

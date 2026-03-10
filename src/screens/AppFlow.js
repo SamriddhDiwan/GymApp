@@ -10,6 +10,8 @@ import ProfileStack from "./ProfileScreens/ProfileStack";
 // Context
 import { CurrentWorkoutProvider } from "../context/CurrentWorkoutContext";
 import { ExerciseProvider } from "../context/ExerciseContext";
+import { UserDetailsProvider } from "../context/UserDetailsContext.js";
+import { WorkoutStatsProvider } from "../context/WorkoutStatsContext.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +19,8 @@ const Stack = createNativeStackNavigator();
 
 export default function AppStack({ route }) {
     return (
+        <UserDetailsProvider>
+        <WorkoutStatsProvider>
         <CurrentWorkoutProvider>
             <ExerciseProvider>
                 <Stack.Navigator
@@ -29,7 +33,7 @@ export default function AppStack({ route }) {
                     <Stack.Screen
                         name="Welcome"
                         component={WelcomeScreen}
-                        options={{ title: 'Start Your Workout' }}
+                        options={{ headerShown: false }}
                     />
 
                     <Stack.Screen
@@ -57,6 +61,8 @@ export default function AppStack({ route }) {
                 </Stack.Navigator>
             </ExerciseProvider>
         </CurrentWorkoutProvider>
+        </WorkoutStatsProvider>
+        </UserDetailsProvider>
 
     );
 }

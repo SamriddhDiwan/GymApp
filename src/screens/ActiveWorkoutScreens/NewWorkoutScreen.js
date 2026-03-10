@@ -12,10 +12,12 @@ import {
 import ExerciseSessionCard from '../../components/ExerciseSessionCard';
 import { useWorkout } from '../../context/CurrentWorkoutContext';
 import workoutSessionServices from '../../services/workoutSessionServices.js'
+import { useWorkoutStats } from '../../context/WorkoutStatsContext.js';
 
 
 export default function NewWorkoutScreen({route}) {const navigation = useNavigation();
     const { selectedExercises, buildWorkoutObject,initializeWorkoutScreen } = useWorkout();
+    const {refreshWorkoutStats}=useWorkoutStats();
     const [startTime] = useState(Date.now());
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [ending, setEnding] = useState(false);
@@ -43,6 +45,7 @@ export default function NewWorkoutScreen({route}) {const navigation = useNavigat
         try {
             const workoutObject = { ...buildWorkoutObject(), durationSeconds: elapsedSeconds};
             await workoutSessionServices.create(workoutObject);
+            refreshWorkoutStats();
             navigation.goBack();
         } catch (err) {
             console.error('Error saving workout:', err);

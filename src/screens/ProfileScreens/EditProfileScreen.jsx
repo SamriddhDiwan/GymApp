@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -13,21 +13,50 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import userDetailServices from "../../services/userDetailServices.js";
+import { useUserDetails } from "../../context/UserDetailsContext.js";
+import api from "../../services/api.js";
 
 export default function EditProfileScreen() {
   const navigation = useNavigation();
-  const [name, setName] = useState("Alex Johnson");
-  const [email, setEmail] = useState("alex@example.com");
-  const [phone, setPhone] = useState("");
-  const [dob, setDob] = useState("");
+  const { refreshUserDetails } = useUserDetails();
+  const [user, setUser] = useState({ name: "", email: "", phoneNo: "", dateOfBirth: "" });
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      const details = await userDetailServices.getUserDetails();
+      setUser({
+        name: details.name || "",
+        email: details.email || "",
+        phoneNo: details.phoneNo || "",
+        dateOfBirth: details.dateOfBirth || "",
+      });
+    };
+    fetchDetails();
+  }, []);
+  
+  const handleFieldChange = (field, value) => {
+    setUser(prev => ({ ...prev, [field]: value }));
+  };
+  const [saving,setSaving]=useState(false); 
+  const handleSave=async () => {
+    console.log("saving the changes");
+    if(saving) return;
+    setSaving(true);
+    await userDetailServices.changeUserDetails(user);
+    await refreshUserDetails();
+    console.log(user);
+    setSaving(false);
+  }  
+  
   const [focusedField, setFocusedField] = useState(null);
 
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+
+
+
+  const initials = user.name
+    ? user.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+    : "";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,9 +92,9 @@ export default function EditProfileScreen() {
               >
                 <Text style={styles.avatarText}>{initials}</Text>
               </LinearGradient>
-              <TouchableOpacity style={styles.cameraBtn}>
+              {/* <TouchableOpacity style={styles.cameraBtn}>
                 <Ionicons name="camera" size={16} color="#fff" />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
 
@@ -90,42 +119,11 @@ export default function EditProfileScreen() {
                   style={styles.input}
                   placeholder="Enter your full name"
                   placeholderTextColor="#555"
-                  value={name}
-                  onChangeText={setName}
+                  value={user.name}
+                  onChangeText={(v) => handleFieldChange("name", v)}
                   autoCapitalize="words"
                   returnKeyType="next"
                   onFocus={() => setFocusedField("name")}
-                  onBlur={() => setFocusedField(null)}
-                />
-              </View>
-            </View>
-
-            {/* Email */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>EMAIL</Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  focusedField === "email" && styles.inputWrapperFocused,
-                ]}
-              >
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color={focusedField === "email" ? "#4A90D9" : "#555"}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your email"
-                  placeholderTextColor="#555"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="next"
-                  onFocus={() => setFocusedField("email")}
                   onBlur={() => setFocusedField(null)}
                 />
               </View>
@@ -150,8 +148,8 @@ export default function EditProfileScreen() {
                   style={styles.input}
                   placeholder="Enter your phone number"
                   placeholderTextColor="#555"
-                  value={phone}
-                  onChangeText={setPhone}
+                  value={user.phoneNo}
+                  onChangeText={(v) => handleFieldChange("phoneNo", v)}
                   keyboardType="phone-pad"
                   returnKeyType="next"
                   onFocus={() => setFocusedField("phone")}
@@ -177,10 +175,10 @@ export default function EditProfileScreen() {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="MM/DD/YYYY"
+                  placeholder="YYYY/MM/DD"
                   placeholderTextColor="#555"
-                  value={dob}
-                  onChangeText={setDob}
+                  value={user.dateOfBirth}
+                  onChangeText={(v) => handleFieldChange("dateOfBirth", v)}
                   keyboardType="default"
                   returnKeyType="done"
                   onFocus={() => setFocusedField("dob")}
@@ -191,14 +189,14 @@ export default function EditProfileScreen() {
           </View>
 
           {/* Save Button */}
-          <TouchableOpacity activeOpacity={0.85}>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleSave}>
             <LinearGradient
               colors={["#4A90D9", "#357ABD"]}
               style={styles.saveBtn}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <Text style={styles.saveBtnText}>Save Changes</Text>
+              <Text style={styles.saveBtnText}>{saving?"Saving...":"Save Changes"}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </ScrollView>

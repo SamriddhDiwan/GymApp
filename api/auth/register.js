@@ -5,14 +5,14 @@ import { addCorsHeaders } from '../_lib/cors.js';
 
 export default async function handler(req, res) {
   // Handle CORS first
-  if(addCorsHeaders(req,res)) return ;
-  
+  if (addCorsHeaders(req, res)) return;
+
   // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const { email, password } = req.body;
+    const { email, password,name } = req.body;
 
     // Validation
     if (!email || !password) {
@@ -38,15 +38,17 @@ export default async function handler(req, res) {
     const passwordHash = await bcrypt.hash(password, 10);
 
     // Create user
-    const { data: newUser, error } = await supabase
-      .from('users')
-      .insert([{ email, password_hash: passwordHash }])
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('register_user_v1', {
+      p_email: email,
+      p_password_hash: passwordHash,
+      p_name: name
+    });
 
-    if (error) {
+    if (error) { 
       throw error;
     }
+
+    const newUser = data[0];
 
     // Generate tokens
     const accessToken = jwt.sign(

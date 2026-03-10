@@ -11,6 +11,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useUserDetails } from "../../context/UserDetailsContext";
+import userDetailServices from "../../services/userDetailServices";
 
 const GOALS = [
   {
@@ -41,12 +43,19 @@ const GOALS = [
 ];
 
 export default function FitnessGoalScreen() {
-  const [selectedGoal, setSelectedGoal] = useState("Build Muscle");
-  const [targetWeight, setTargetWeight] = useState("75");
+  const {userDetails,refreshUserDetails}=useUserDetails();
+  const [selectedGoal, setSelectedGoal] = useState(userDetails?.fitnessGoal||"Build Muscle");
+  const [targetWeight, setTargetWeight] = useState(userDetails.targetWeight);
+  const [saving,setSaving]=useState(false);
   const navigation = useNavigation();
-
   const currentGoal = GOALS.find((g) => g.key === selectedGoal);
-
+  const handleSave=async () => {
+    if(saving) return;
+    setSaving(true);
+    await userDetailServices.changeUserDetails({fitnessGoal:selectedGoal,targetWeight:targetWeight});
+    await refreshUserDetails();
+    setSaving(false);
+  }
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -149,14 +158,14 @@ export default function FitnessGoalScreen() {
         </View>
 
         {/* Save Button */}
-        <TouchableOpacity activeOpacity={0.85}>
+        <TouchableOpacity activeOpacity={0.85} onPress={handleSave}>
           <LinearGradient
             colors={["#4A90D9", "#357ABD"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.saveBtn}
           >
-            <Text style={styles.saveBtnText}>Save Goal</Text>
+            <Text style={styles.saveBtnText}>{saving?"Saving...":"Save Goal"}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
