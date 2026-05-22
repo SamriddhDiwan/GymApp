@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import authService from './src/services/authService.js';
 
 // Screens
@@ -90,6 +91,7 @@ export default function App() {
 
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <AuthContext.Provider value={{ ...authContext, state }}>
       <NavigationContainer>
         <Stack.Navigator
@@ -112,5 +114,6 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </AuthContext.Provider>
+    </GestureHandlerRootView>
   );
 }

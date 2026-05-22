@@ -12,6 +12,8 @@ import { CurrentWorkoutProvider } from "../context/CurrentWorkoutContext";
 import { ExerciseProvider } from "../context/ExerciseContext";
 import { UserDetailsProvider } from "../context/UserDetailsContext.js";
 import { WorkoutStatsProvider } from "../context/WorkoutStatsContext.js";
+import AXFloatingButton from "../components/AXFloatingButton.js";
+import { View,StyleSheet } from "react-native";
 
 const Stack = createNativeStackNavigator();
 
@@ -20,49 +22,56 @@ const Stack = createNativeStackNavigator();
 export default function AppStack({ route }) {
     return (
         <UserDetailsProvider>
-        <WorkoutStatsProvider>
-        <CurrentWorkoutProvider>
-            <ExerciseProvider>
-                <Stack.Navigator
-                    initialRouteName="Welcome"
-                    screenOptions={{
-                        headerStyle: { backgroundColor: "#0B132B" },
-                        headerTintColor: '#fff',
-                    }}
-                >
-                    <Stack.Screen
-                        name="Welcome"
-                        component={WelcomeScreen}
-                        options={{ headerShown: false }}
-                    />
+            <WorkoutStatsProvider>
+                <CurrentWorkoutProvider>
+                    <ExerciseProvider>
+                         <View style={styles.container}>
+                                <Stack.Navigator
+                                    initialRouteName="Welcome"
+                                    screenOptions={{
+                                        headerStyle: { backgroundColor: "#0B132B" },
+                                        headerTintColor: '#fff',
+                                    }}
+                                >
+                                    <Stack.Screen
+                                        name="Welcome"
+                                        component={WelcomeScreen}
+                                        options={{ headerShown: false }}
+                                    />
 
-                    <Stack.Screen
-                        name="WorkoutSessions"
-                        component={WorkoutSessionsScreen}
-                        options={{ title: 'Choose Your Session' }}
-                    />
-                    <Stack.Screen
-                        name="ExerciseDescription"
-                        component={ExerciseDescriptionScreen}
-                        options={{ title: "Exercise Description" }}
-                    />
+                                    <Stack.Screen
+                                        name="WorkoutSessions"
+                                        component={WorkoutSessionsScreen}
+                                        options={{ title: 'Choose Your Session' }}
+                                    />
+                                    <Stack.Screen
+                                        name="ExerciseDescription"
+                                        component={ExerciseDescriptionScreen}
+                                        options={{ title: "Exercise Description" }}
+                                    />
 
-                    <Stack.Screen
-                        name="WorkoutFlow"
-                        component={CurrentWorkoutStack}
-                        options={{ headerShown: false }}
-                    />
+                                    <Stack.Screen
+                                        name="WorkoutFlow"
+                                        component={CurrentWorkoutStack}
+                                        options={{ headerShown: false }}
+                                    />
 
-                    <Stack.Screen
-                        name="Profile"
-                        component={ProfileStack}
-                        options={{ headerShown: false }}
-                    />
-                </Stack.Navigator>
-            </ExerciseProvider>
-        </CurrentWorkoutProvider>
-        </WorkoutStatsProvider>
+                                    <Stack.Screen
+                                        name="Profile"
+                                        component={ProfileStack}
+                                        options={{ headerShown: false }}
+                                    />
+                                </Stack.Navigator>
+                            <AXFloatingButton/>
+                        </View>
+                    </ExerciseProvider>
+                </CurrentWorkoutProvider>
+            </WorkoutStatsProvider>
         </UserDetailsProvider>
 
     );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
